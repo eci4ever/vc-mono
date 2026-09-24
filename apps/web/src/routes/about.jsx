@@ -1,30 +1,58 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { card } from '../ui'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+
+const stack = [
+  {
+    area: 'API',
+    detail: 'Go Fiber under /api/v1, PostgreSQL via sqlc, structured slog JSON logs.',
+  },
+  {
+    area: 'Web',
+    detail: 'React + Vite, TanStack Router (file-based routes), TanStack Query, shadcn/ui on Base UI.',
+  },
+  {
+    area: 'Deployment',
+    detail: 'Single origin on Vercel (sin1) — the React build is embedded into the Go binary.',
+  },
+]
 
 function About() {
   return (
-    <main>
-      <h1 style={{ textAlign: 'center' }}>About</h1>
-      <div style={{ ...card, display: 'block', textAlign: 'left', lineHeight: 1.7 }}>
-        <p>
-          <strong>vc-mono</strong> is a monorepo where the Go Fiber API and the React
-          web app are built into a single binary and served from one origin.
+    <main className="flex flex-col gap-6">
+      <div>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">About</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          What powers vc-mono.
         </p>
-        <ul style={{ paddingLeft: '1.2rem' }}>
-          <li>
-            <strong>API</strong> — Go Fiber under <code>/api/v1</code>, PostgreSQL via
-            sqlc, deployed to Vercel (region sin1).
-          </li>
-          <li>
-            <strong>Web</strong> — React + Vite, TanStack Router (file-based routes),
-            TanStack Query for server state, embedded into the Go binary.
-          </li>
-          <li>
-            <strong>Single origin</strong> — no CORS: the API and the SPA share the
-            same domain.
-          </li>
-        </ul>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Stack</CardTitle>
+          <CardDescription>One repo, one binary, one origin.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col">
+          {stack.map((item, i) => (
+            <Fragment key={item.area}>
+              {i > 0 && <Separator />}
+              <div className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:gap-4">
+                <Badge variant="secondary" className="w-fit shrink-0">
+                  {item.area}
+                </Badge>
+                <p className="text-sm text-muted-foreground">{item.detail}</p>
+              </div>
+            </Fragment>
+          ))}
+        </CardContent>
+      </Card>
     </main>
   )
 }

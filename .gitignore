@@ -9,3 +9,6 @@ server
 # web build output (the Go embed directory is populated by `make web`)
 apps/api/webfs/dist/*
 !apps/api/webfs/dist/.gitkeep
+
+# local QA screenshots
+/homepage-*.png

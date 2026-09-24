@@ -1,7 +1,42 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { card, dot, statusRow } from '../ui'
+import {
+  DatabaseIcon,
+  InboxIcon,
+  RefreshCwIcon,
+  SendIcon,
+  ServerIcon,
+} from 'lucide-react'
+import { cn } from 'cn'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 
 const API = '/api/v1'
 
@@ -17,6 +52,46 @@ async function fetchMessages() {
   const res = await fetch(`${API}/messages`)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json()
+}
+
+function StateBadge({ state, labels }) {
+  const dot =
+    state === 'up' ? 'bg-success' : state === 'down' ? 'bg-destructive' : 'bg-warning'
+  const label = labels[state] ?? labels.checking
+  return (
+    <Badge variant="outline" className="gap-1.5">
+      <span className={cn('size-1.5 rounded-full', dot)} />
+      {label}
+    </Badge>
+  )
+}
+
+function Latency({ pending, ms, suffix }) {
+  if (pending) return <Skeleton className="h-8 w-24" />
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <span className="font-heading text-3xl font-semibold tabular-nums">
+        {ms ?? '—'}
+      </span>
+      <span className="text-xs text-muted-foreground">{suffix}</span>
+    </div>
+  )
+}
+
+function StatusCard({ icon: Icon, title, description, action, children }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 font-medium">
+          <Icon className="size-4 text-muted-foreground" />
+          {title}
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+        <CardAction>{action}</CardAction>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
+  )
 }
 
 function Home() {
@@ -53,102 +128,186 @@ function Home() {
     },
   })
 
-  const status = statusQuery.isError
-    ? 'offline'
+  const apiState = statusQuery.isError
+    ? 'down'
     : statusQuery.isPending
-      ? 'checking'
-      : 'online'
-  const color = status === 'online' ? '#22c55e' : status === 'offline' ? '#ef4444' : '#f59e0b'
-  const label = status === 'online' ? 'Online' : status === 'offline' ? 'Offline' : 'Checking…'
-
+      ? 'pending'
+      : 'up'
   const db = statusQuery.data?.db
-  const dbStatus = statusQuery.isError ? 'unknown' : (db?.status ?? 'checking')
-  const dbColor = dbStatus === 'up' ? '#22c55e' : dbStatus === 'down' ? '#ef4444' : '#f59e0b'
-  const dbLabel =
-    dbStatus === 'up'
-      ? 'Database Up'
-      : dbStatus === 'down'
-        ? 'Database Down'
-        : dbStatus === 'not_configured'
-          ? 'Database Not Configured'
-          : dbStatus === 'unknown'
-            ? 'Database Unknown'
-            : 'Checking DB…'
+  const dbState = statusQuery.isError
+    ? 'unknown'
+    : statusQuery.isPending
+      ? 'pending'
+      : (db?.status === 'up' ? 'up' : db?.status === 'down' ? 'down' : 'pending')
 
   const messages = messagesQuery.data ?? []
+  const pending = createMessage.isPending
 
   const submit = (e) => {
     e.preventDefault()
     const content = draft.trim()
-    if (!content || createMessage.isPending) return
+    if (!content || pending) return
     createMessage.mutate(content)
   }
 
   return (
-    <main>
-      <h1 style={{ textAlign: 'center' }}>React + Fiber monorepo</h1>
-      <div style={{ ...card, display: 'block', textAlign: 'center' }}>
-        <p style={statusRow}>
-          <span style={dot(color)} />
-          <strong>{label}</strong>
-          {statusQuery.data && <span style={{ color: '#6b7280' }}>· {statusQuery.data.apiLatency} ms</span>}
+    <main className="flex flex-col gap-6">
+      <div>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">Status</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Live health of the API and its database — refreshes every 10 seconds.
         </p>
-      </div>
-      <div style={{ ...card, display: 'block', textAlign: 'center', marginTop: 12 }}>
-        <p style={statusRow}>
-          <span style={dot(dbColor)} />
-          <strong>{dbLabel}</strong>
-          {db?.latency_ms != null && <span style={{ color: '#6b7280' }}>· {db.latency_ms} ms</span>}
-        </p>
-        {dbStatus === 'down' && db?.error && (
-          <p style={{ margin: '8px 0 0', color: '#ef4444', fontSize: 13 }}>{db.error}</p>
-        )}
       </div>
 
-      <form onSubmit={submit} style={{ display: 'flex', gap: 8, margin: '1.5rem 0' }}>
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Write a message…"
-          style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db' }}
-        />
-        <button
-          type="submit"
-          disabled={createMessage.isPending}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: 8,
-            border: 'none',
-            background: '#2563eb',
-            color: '#fff',
-            cursor: createMessage.isPending ? 'wait' : 'pointer',
-            opacity: createMessage.isPending ? 0.6 : 1,
-          }}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <StatusCard
+          icon={ServerIcon}
+          title="API"
+          description="GET /api/v1/status · fiber · sin1"
+          action={
+            statusQuery.isPending ? (
+              <Skeleton className="h-5 w-16 rounded-full" />
+            ) : (
+              <StateBadge
+                state={apiState}
+                labels={{ up: 'Online', down: 'Offline', pending: 'Checking…' }}
+              />
+            )
+          }
         >
-          {createMessage.isPending ? 'Sending…' : 'Send'}
-        </button>
-      </form>
-      {createMessage.isError && (
-        <p style={{ margin: '-0.5rem 0 1rem', color: '#ef4444', fontSize: 14 }} role="alert">
-          {createMessage.error.message}
-        </p>
-      )}
+          <Latency
+            pending={statusQuery.isPending}
+            ms={statusQuery.data?.apiLatency}
+            suffix="ms response time"
+          />
+        </StatusCard>
 
-      <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: 8 }}>
-        {messages.map((m) => (
-          <li key={m.id} style={{ ...card, display: 'block', textAlign: 'left' }}>
-            {m.content}
-            <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>
-              {new Date(m.created_at).toLocaleString()}
+        <StatusCard
+          icon={DatabaseIcon}
+          title="Database"
+          description="PostgreSQL · Neon · ap-southeast-1"
+          action={
+            statusQuery.isPending ? (
+              <Skeleton className="h-5 w-16 rounded-full" />
+            ) : (
+              <StateBadge
+                state={dbState}
+                labels={{
+                  up: 'Up',
+                  down: 'Down',
+                  not_configured: 'Not configured',
+                  pending: 'Checking…',
+                  unknown: 'Unknown',
+                }}
+              />
+            )
+          }
+        >
+          <Latency pending={statusQuery.isPending} ms={db?.latency_ms} suffix="ms query time" />
+          {db?.error && (
+            <p className="mt-1 line-clamp-2 text-xs text-destructive">{db.error}</p>
+          )}
+        </StatusCard>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Messages</CardTitle>
+          <CardDescription>Stored in PostgreSQL, latest first</CardDescription>
+          <CardAction>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['messages'] })}
+              disabled={messagesQuery.isFetching}
+            >
+              {messagesQuery.isFetching ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <RefreshCwIcon data-icon="inline-start" />
+              )}
+              Refresh
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <form onSubmit={submit}>
+            <InputGroup>
+              <InputGroupInput
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Write a message…"
+                maxLength={500}
+                disabled={pending}
+                aria-invalid={createMessage.isError}
+                aria-label="Message"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  type="submit"
+                  size="icon-xs"
+                  aria-label="Send"
+                  disabled={!draft.trim() || pending}
+                >
+                  {pending ? <Spinner /> : <SendIcon />}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </form>
+
+          {createMessage.isError && (
+            <Alert variant="destructive">
+              <AlertTitle>Couldn't send your message</AlertTitle>
+              <AlertDescription>{createMessage.error.message}</AlertDescription>
+            </Alert>
+          )}
+
+          {messagesQuery.isPending ? (
+            <div className="flex flex-col">
+              {[0, 1, 2].map((i) => (
+                <Fragment key={i}>
+                  {i > 0 && <Separator />}
+                  <div className="flex flex-col gap-2 py-3">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </div>
+                </Fragment>
+              ))}
             </div>
-          </li>
-        ))}
-        {messagesQuery.isPending && <li style={{ color: '#9ca3af' }}>Loading…</li>}
-        {messagesQuery.isError && <li style={{ color: '#ef4444' }}>Failed to load messages.</li>}
-        {!messagesQuery.isPending && !messagesQuery.isError && messages.length === 0 && (
-          <li style={{ color: '#9ca3af' }}>No messages yet.</li>
-        )}
-      </ul>
+          ) : messagesQuery.isError ? (
+            <Alert variant="destructive">
+              <AlertTitle>Failed to load messages</AlertTitle>
+              <AlertDescription>
+                {messagesQuery.error?.message ?? 'Something went wrong.'}
+              </AlertDescription>
+            </Alert>
+          ) : messages.length === 0 ? (
+            <Empty className="border">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <InboxIcon />
+                </EmptyMedia>
+                <EmptyTitle>No messages yet</EmptyTitle>
+                <EmptyDescription>Be the first — say hello.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <ol className="flex flex-col">
+              {messages.map((m, i) => (
+                <Fragment key={m.id}>
+                  {i > 0 && <Separator />}
+                  <li className="py-3 first:pt-0 last:pb-0">
+                    <p className="text-sm break-words">{m.content}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {new Date(m.created_at).toLocaleString()}
+                    </p>
+                  </li>
+                </Fragment>
+              ))}
+            </ol>
+          )}
+        </CardContent>
+      </Card>
     </main>
   )
 }

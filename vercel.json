@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "go",
+  "regions": ["sin1"],
+  "buildCommand": "npm ci && npm -w apps/web run build && rm -rf apps/api/webfs/dist && mkdir -p apps/api/webfs/dist && cp -r apps/web/dist/. apps/api/webfs/dist/ && go build -o server ."
+}

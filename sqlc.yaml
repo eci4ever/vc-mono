@@ -1,0 +1,14 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "apps/api/db/migrations"
+    queries: "apps/api/db/query.sql"
+    gen:
+      go:
+        package: "sqlc"
+        out: "apps/api/db/sqlc"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: "timestamptz"
+            nullable: false
+            go_type: "time.Time"

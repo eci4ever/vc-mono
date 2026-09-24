@@ -3,15 +3,11 @@
 APP_DIR    := apps/api
 WEB_DIR    := apps/web
 EMBED_DIST := apps/api/webfs/dist
-
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
 
-web: ## Build the React app and copy it into the Go embed directory
+web: ## Build the React app straight into the Go embed directory
 	npm -w apps/web run build
-	rm -rf $(EMBED_DIST)
-	mkdir -p $(EMBED_DIST)
-	cp -r $(WEB_DIR)/dist/. $(EMBED_DIST)/
 	touch $(EMBED_DIST)/.gitkeep
 
 build: web ## Build the API binary with the web app embedded

@@ -7,6 +7,5 @@ server
 .playwright-mcp
 
 # web build output (the Go embed directory is populated by `make web`)
-apps/web/dist/
 apps/api/webfs/dist/*
 !apps/api/webfs/dist/.gitkeep

@@ -8,6 +8,9 @@
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    --color-brand-from: var(--brand-from);
+    --color-brand-via: var(--brand-via);
+    --color-brand-to: var(--brand-to);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -41,6 +44,8 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --animate-accordion-down: accordion-down 0.2s ease-out;
+    --animate-accordion-up: accordion-up 0.2s ease-out;
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -51,6 +56,10 @@
 }
 
 :root {
+    --brand-from: oklch(0.62 0.19 277);
+    --brand-via: oklch(0.66 0.24 322);
+    --brand-to: oklch(0.78 0.13 208);
+    --grid-line: oklch(0.145 0 0 / 7%);
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -88,6 +97,10 @@
 }
 
 .dark {
+    --brand-from: oklch(0.72 0.17 277);
+    --brand-via: oklch(0.74 0.2 322);
+    --brand-to: oklch(0.84 0.12 208);
+    --grid-line: oklch(1 0 0 / 8%);
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
@@ -133,4 +146,76 @@
   html {
     @apply font-sans;
     }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--accordion-panel-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--accordion-panel-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Decorative gradient + grid helpers used by the marketing landing page. */
+@utility text-gradient {
+  background-image: linear-gradient(
+    120deg,
+    var(--brand-from),
+    var(--brand-via) 55%,
+    var(--brand-to)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility bg-grid {
+  background-image: linear-gradient(
+      to right,
+      var(--grid-line) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 3.5rem 3.5rem;
+}
+
+@utility grid-line-light {
+  --grid-line: rgb(255 255 255 / 8%);
+}
+
+@utility bg-dots {
+  background-image: radial-gradient(var(--grid-line) 1px, transparent 1px);
+  background-size: 1.25rem 1.25rem;
+}
+
+@utility mask-fade-edges {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12%,
+    black 88%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12%,
+    black 88%,
+    transparent
+  );
+}
+
+@utility mask-fade-bottom {
+  -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent);
+  mask-image: linear-gradient(to bottom, black 55%, transparent);
 }

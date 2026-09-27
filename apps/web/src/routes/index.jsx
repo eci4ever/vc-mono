@@ -1,10 +1,10 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { ArrowRightIcon, SparklesIcon } from 'lucide-react'
 
 import { BrandMark } from '@/components/landing/brand-mark'
 import { StatusPills } from '@/components/landing/status-pills'
 import { Button } from '@/components/ui/button'
-import { STACK } from '@/lib/brand'
+import { REPO_URL, STACK } from '@/lib/brand'
 
 function Landing() {
   return (
@@ -22,21 +22,13 @@ function Landing() {
 
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-5">
         <BrandMark />
-        <div className="flex shrink-0 items-center gap-3">
-          <Link
-            to="/about"
-            className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
-          >
-            About
-          </Link>
-          <Button
-            nativeButton={false}
-            render={<Link to="/dashboard" />}
-            className="h-9 rounded-full px-4"
-          >
-            Get started
-          </Button>
-        </div>
+        <Button
+          nativeButton={false}
+          render={<a href={REPO_URL} target="_blank" rel="noreferrer" />}
+          className="h-9 shrink-0 rounded-full px-4"
+        >
+          Get started
+        </Button>
       </header>
 
       <main className="flex flex-1 items-center justify-center px-6 pb-16">
@@ -58,22 +50,14 @@ function Landing() {
             brand it, ship it.
           </p>
 
-          <div className="flex w-full animate-in fade-in flex-col items-center justify-center gap-3 fill-mode-both delay-300 duration-700 sm:w-auto sm:flex-row">
+          <div className="flex w-full animate-in fade-in items-center justify-center fill-mode-both delay-300 duration-700 sm:w-auto">
             <Button
               nativeButton={false}
-              render={<Link to="/dashboard" />}
+              render={<a href={REPO_URL} target="_blank" rel="noreferrer" />}
               className="h-12 w-full rounded-full px-6 text-base sm:w-auto"
             >
-              View live demo
+              Get started
               <ArrowRightIcon data-icon="inline-end" />
-            </Button>
-            <Button
-              variant="outline"
-              nativeButton={false}
-              render={<Link to="/about" />}
-              className="h-12 w-full rounded-full px-6 text-base sm:w-auto"
-            >
-              Explore the stack
             </Button>
           </div>
 

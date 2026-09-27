@@ -1,8 +1,15 @@
+import type { LinkProps } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
+
 import { BRAND_INITIAL, BRAND_NAME } from '@/lib/brand'
 import { cn } from '@/lib/utils'
 
-export function BrandMark({ className, to = '/' }) {
+type BrandMarkProps = {
+  className?: string
+  to?: LinkProps['to']
+}
+
+export function BrandMark({ className, to = '/' }: BrandMarkProps) {
   return (
     <Link
       to={to}

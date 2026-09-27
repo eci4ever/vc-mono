@@ -3,11 +3,28 @@ import { cn } from '@/lib/utils'
 
 const STATUS_POLL_MS = 30_000
 
-async function fetchStatus() {
+type DbStatus = {
+  status: 'up' | 'down' | 'not_configured'
+  latency_ms?: number
+  error?: string
+}
+
+type StatusResponse = {
+  status: string
+  uptime: string
+  db: DbStatus
+}
+
+type StatusState = {
+  state: 'up' | 'down' | 'idle'
+  detail: string
+}
+
+async function fetchStatus(): Promise<StatusResponse & { apiLatencyMs: number }> {
   const startedAt = performance.now()
   const res = await fetch('/api/v1/status')
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
+  const data = (await res.json()) as StatusResponse
   return { ...data, apiLatencyMs: Math.round(performance.now() - startedAt) }
 }
 
@@ -18,9 +35,9 @@ const TONES = {
     pill: 'border-border text-muted-foreground',
     dot: 'bg-muted-foreground',
   },
-}
+} satisfies Record<StatusState['state'], { pill: string; dot: string }>
 
-function StatusPill({ label, state, detail }) {
+function StatusPill({ label, state, detail }: { label: string } & StatusState) {
   const tone = TONES[state]
   return (
     <span
@@ -57,13 +74,13 @@ export function StatusPills() {
 
   const db = data?.db
 
-  const api = isError
+  const api: StatusState = isError
     ? { state: 'down', detail: 'offline' }
     : isPending
       ? { state: 'idle', detail: 'checking…' }
       : { state: 'up', detail: `operational · ${data.apiLatencyMs}ms` }
 
-  let dbPill
+  let dbPill: StatusState
   if (isPending) dbPill = { state: 'idle', detail: 'checking…' }
   else if (isError) dbPill = { state: 'down', detail: 'offline' }
   else if (db?.status === 'up')

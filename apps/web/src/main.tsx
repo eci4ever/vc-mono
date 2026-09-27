@@ -19,7 +19,16 @@ const router = createRouter({
   defaultPreload: 'intent',
 })
 
-createRoot(document.getElementById('root')).render(
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+
+const root = document.getElementById('root')
+if (!root) throw new Error('Missing #root element')
+
+createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />

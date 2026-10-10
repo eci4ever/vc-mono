@@ -7,7 +7,19 @@ package sqlc
 
 import (
 	"context"
+	"time"
 )
+
+const countUsers = `-- name: CountUsers :one
+SELECT count(*) FROM users
+`
+
+func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countUsers)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const createMessage = `-- name: CreateMessage :one
 INSERT INTO messages (content)
@@ -19,6 +31,164 @@ func (q *Queries) CreateMessage(ctx context.Context, content string) (Message, e
 	row := q.db.QueryRow(ctx, createMessage, content)
 	var i Message
 	err := row.Scan(&i.ID, &i.Content, &i.CreatedAt)
+	return i, err
+}
+
+const createSession = `-- name: CreateSession :exec
+INSERT INTO sessions (id, user_id, expires_at)
+VALUES ($1, $2, $3)
+`
+
+type CreateSessionParams struct {
+	ID        string
+	UserID    string
+	ExpiresAt time.Time
+}
+
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
+	_, err := q.db.Exec(ctx, createSession, arg.ID, arg.UserID, arg.ExpiresAt)
+	return err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (name, email, password_hash, role)
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, email, role, created_at, updated_at
+`
+
+type CreateUserParams struct {
+	Name         string
+	Email        string
+	PasswordHash string
+	Role         string
+}
+
+type CreateUserRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Role      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Name,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Role,
+	)
+	var i CreateUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteExpiredSessions = `-- name: DeleteExpiredSessions :exec
+DELETE FROM sessions WHERE expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredSessions(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredSessions)
+	return err
+}
+
+const deleteSession = `-- name: DeleteSession :exec
+DELETE FROM sessions WHERE id = $1
+`
+
+func (q *Queries) DeleteSession(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteSession, id)
+	return err
+}
+
+const getSession = `-- name: GetSession :one
+SELECT s.id, s.user_id, s.expires_at,
+       u.name, u.email, u.role, u.created_at AS user_created_at
+FROM sessions s
+JOIN users u ON u.id = s.user_id
+WHERE s.id = $1 AND s.expires_at > now()
+`
+
+type GetSessionRow struct {
+	ID            string
+	UserID        string
+	ExpiresAt     time.Time
+	Name          string
+	Email         string
+	Role          string
+	UserCreatedAt time.Time
+}
+
+func (q *Queries) GetSession(ctx context.Context, id string) (GetSessionRow, error) {
+	row := q.db.QueryRow(ctx, getSession, id)
+	var i GetSessionRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ExpiresAt,
+		&i.Name,
+		&i.Email,
+		&i.Role,
+		&i.UserCreatedAt,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, name, email, password_hash, role, created_at, updated_at
+FROM users
+WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, name, email, role, created_at, updated_at
+FROM users
+WHERE id = $1
+`
+
+type GetUserByIDRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Role      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id string) (GetUserByIDRow, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
+	var i GetUserByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
@@ -47,4 +217,80 @@ func (q *Queries) ListMessages(ctx context.Context) ([]Message, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const listUsers = `-- name: ListUsers :many
+SELECT id, name, email, role, created_at
+FROM users
+ORDER BY created_at DESC
+LIMIT 200
+`
+
+type ListUsersRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Role      string
+	CreatedAt time.Time
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
+	rows, err := q.db.Query(ctx, listUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUsersRow
+	for rows.Next() {
+		var i ListUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Email,
+			&i.Role,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateUserName = `-- name: UpdateUserName :one
+UPDATE users
+SET name = $2, updated_at = now()
+WHERE id = $1
+RETURNING id, name, email, role, created_at, updated_at
+`
+
+type UpdateUserNameParams struct {
+	ID   string
+	Name string
+}
+
+type UpdateUserNameRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Role      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (UpdateUserNameRow, error) {
+	row := q.db.QueryRow(ctx, updateUserName, arg.ID, arg.Name)
+	var i UpdateUserNameRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

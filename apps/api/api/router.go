@@ -40,7 +40,13 @@ func New(log *slog.Logger, pool *db.Pool) *fiber.App {
 	app.Use(helmet.New())
 	app.Use(compress.New())
 
-	// Rate-limit message writes: this endpoint is public.
+	// Resolve the session cookie (if any) before routing.
+	app.Use(func(c fiber.Ctx) error {
+		s.loadSession(c)
+		return c.Next()
+	})
+
+	// Rate-limit unauthenticated writes: these endpoints are public.
 	writeLimiter := limiter.New(limiter.Config{
 		Max:        10,
 		Expiration: time.Minute,
@@ -51,6 +57,15 @@ func New(log *slog.Logger, pool *db.Pool) *fiber.App {
 	v1.Get("/status", s.status)
 	v1.Get("/messages", s.listMessages)
 	v1.Post("/messages", writeLimiter, s.createMessage)
+
+	auth := v1.Group("/auth")
+	auth.Post("/signup", writeLimiter, s.signup)
+	auth.Post("/login", writeLimiter, s.login)
+	auth.Post("/logout", s.logout)
+	auth.Get("/me", s.me)
+	auth.Put("/me", s.requireAuth, s.updateMe)
+
+	v1.Get("/admin/users", s.requireAdmin, s.adminListUsers)
 
 	// Unknown API routes -> JSON 404, never the SPA fallback.
 	app.Use("/api", func(c fiber.Ctx) error {

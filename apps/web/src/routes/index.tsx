@@ -1,12 +1,19 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowRightIcon, SparklesIcon } from 'lucide-react'
 
 import { BrandMark } from '@/components/landing/brand-mark'
 import { StatusPills } from '@/components/landing/status-pills'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { sessionQuery } from '@/lib/auth'
 import { STACK } from '@/lib/brand'
 
 function Landing() {
+  // Signed-in visitors get dashboard shortcuts instead of signup CTAs.
+  // The skeleton placeholders avoid a flicker while the session resolves.
+  const { data: user, isPending } = useQuery(sessionQuery)
+
   return (
     <div className="relative isolate flex min-h-svh flex-col overflow-hidden bg-background text-foreground">
       {/* Ambient gradient wash across the top of the page. */}
@@ -23,19 +30,33 @@ function Landing() {
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-5">
         <BrandMark />
         <div className="flex shrink-0 items-center gap-3">
-          <Link
-            to="/login"
-            className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
-          >
-            Sign in
-          </Link>
-          <Button
-            nativeButton={false}
-            render={<Link to="/signup" />}
-            className="h-9 rounded-full px-4"
-          >
-            Get started
-          </Button>
+          {isPending ? (
+            <Skeleton className="h-9 w-28 rounded-full" />
+          ) : user ? (
+            <Button
+              nativeButton={false}
+              render={<Link to="/dashboard" />}
+              className="h-9 rounded-full px-4"
+            >
+              Dashboard
+            </Button>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
+              >
+                Sign in
+              </Link>
+              <Button
+                nativeButton={false}
+                render={<Link to="/signup" />}
+                className="h-9 rounded-full px-4"
+              >
+                Get started
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -59,14 +80,27 @@ function Landing() {
           </p>
 
           <div className="flex w-full animate-in fade-in items-center justify-center fill-mode-both delay-300 duration-700 sm:w-auto">
-            <Button
-              nativeButton={false}
-              render={<Link to="/signup" />}
-              className="h-12 w-full rounded-full px-6 text-base sm:w-auto"
-            >
-              Get started
-              <ArrowRightIcon data-icon="inline-end" />
-            </Button>
+            {isPending ? (
+              <Skeleton className="h-12 w-48 rounded-full" />
+            ) : user ? (
+              <Button
+                nativeButton={false}
+                render={<Link to="/dashboard" />}
+                className="h-12 w-full rounded-full px-6 text-base sm:w-auto"
+              >
+                Open dashboard
+                <ArrowRightIcon data-icon="inline-end" />
+              </Button>
+            ) : (
+              <Button
+                nativeButton={false}
+                render={<Link to="/signup" />}
+                className="h-12 w-full rounded-full px-6 text-base sm:w-auto"
+              >
+                Get started
+                <ArrowRightIcon data-icon="inline-end" />
+              </Button>
+            )}
           </div>
 
           <div className="flex animate-in fade-in flex-col items-center gap-3 fill-mode-both delay-[450ms] duration-700">

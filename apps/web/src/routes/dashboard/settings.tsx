@@ -103,11 +103,12 @@ function SettingsProfile() {
           >
             {updateName.isPending ? 'Saving…' : 'Save changes'}
           </Button>
-          {saved && !updateName.isPending && (
-            <span className="text-sm text-success" role="status">
-              Saved.
-            </span>
-          )}
+          <span
+            className="text-sm text-success"
+            role="status"
+          >
+            {saved && !updateName.isPending ? 'Saved.' : ''}
+          </span>
         </CardFooter>
       </Card>
     </div>

@@ -37,6 +37,7 @@ const adminUsersQuery = queryOptions({
 })
 
 function AdminUsers() {
+  usePageTitle('Admin · Users')
   const { data: user } = useQuery(sessionQuery)
 
   // Server enforces the same rule with a 403; this only shapes the UI.
@@ -55,7 +56,6 @@ function AdminUsers() {
 }
 
 function AdminUsersTable() {
-  usePageTitle('Admin · Users')
   const users = useQuery(adminUsersQuery)
 
   return (

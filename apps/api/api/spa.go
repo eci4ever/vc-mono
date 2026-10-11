@@ -2,6 +2,7 @@ package api
 
 import (
 	"io/fs"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/static"
@@ -17,9 +18,23 @@ func mountSPA(app *fiber.App) {
 		panic(err)
 	}
 
-	index := static.New("index.html", static.Config{FS: dist})
+	// index.html references hashed assets that change on every deploy, so a
+	// stale cached copy points at files that no longer exist and the page
+	// renders blank. Force revalidation on everything except /assets, whose
+	// content-addressed filenames are safe to cache forever.
+	cacheControl := func(c fiber.Ctx) error {
+		if strings.HasPrefix(c.Path(), "/assets/") {
+			c.Set(fiber.HeaderCacheControl, "public, max-age=31536000, immutable")
+		} else {
+			c.Set(fiber.HeaderCacheControl, "no-cache")
+		}
+		return nil
+	}
+	index := static.New("index.html", static.Config{FS: dist, ModifyResponse: cacheControl})
+
 	app.Use("/", static.New("/", static.Config{
-		FS: dist,
+		FS:             dist,
+		ModifyResponse: cacheControl,
 		NotFoundHandler: func(c fiber.Ctx) error {
 			if _, statErr := fs.Stat(dist, "index.html"); statErr != nil {
 				return c.Status(fiber.StatusServiceUnavailable).

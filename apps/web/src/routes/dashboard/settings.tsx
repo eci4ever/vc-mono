@@ -15,8 +15,10 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { authApi, sessionQuery } from '@/lib/auth'
+import { usePageTitle } from '@/lib/use-page-title'
 
 function SettingsProfile() {
+  usePageTitle('Settings')
   const { data: user } = useQuery(sessionQuery)
   const queryClient = useQueryClient()
   const [saved, setSaved] = useState(false)

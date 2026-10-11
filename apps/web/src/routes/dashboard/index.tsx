@@ -12,8 +12,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { sessionQuery } from '@/lib/auth'
+import { usePageTitle } from '@/lib/use-page-title'
 
 function DashboardOverview() {
+  usePageTitle('Dashboard')
   const { data: user } = useQuery(sessionQuery)
   if (!user) return null
 

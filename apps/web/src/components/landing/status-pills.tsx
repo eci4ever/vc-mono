@@ -40,21 +40,21 @@ const TONES = {
 function StatusPill({ label, state, detail }: { label: string } & StatusState) {
   const tone = TONES[state]
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium',
-        tone.pill,
-      )}
-    >
-      <span className="relative flex size-2">
-        {state !== 'idle' && (
-          <span
-            className={cn(
-              'absolute inline-flex h-full w-full animate-ping rounded-full opacity-60',
-              tone.dot,
-            )}
-          />
+      <span
+        className={cn(
+          'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium tabular-nums',
+          tone.pill,
         )}
+      >
+        <span className="relative flex size-2">
+          {state !== 'idle' && (
+            <span
+              className={cn(
+                'absolute inline-flex h-full w-full rounded-full opacity-60 motion-safe:animate-ping',
+                tone.dot,
+              )}
+            />
+          )}
         <span
           className={cn('relative inline-flex size-2 rounded-full', tone.dot)}
         />

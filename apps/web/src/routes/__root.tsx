@@ -1,19 +1,29 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { Link, Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
-import { BRAND_NAME } from '@/lib/brand'
+import { usePageTitle } from '@/lib/use-page-title'
 
 function RootLayout() {
   return (
     <div className="flex min-h-svh flex-col bg-background">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-md"
+      >
+        Skip to content
+      </a>
       <Outlet />
     </div>
   )
 }
 
 function NotFound() {
+  usePageTitle('Page not found')
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
+    <div
+      id="main"
+      className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center"
+    >
       <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
         404
       </p>
@@ -21,7 +31,7 @@ function NotFound() {
         Nothing here
       </h1>
       <p className="max-w-sm text-sm text-muted-foreground">
-        {BRAND_NAME} is a single landing page for now.
+        That page doesn&apos;t exist.
       </p>
       <Button
         nativeButton={false}

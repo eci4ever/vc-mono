@@ -22,7 +22,7 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
         </div>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-6 py-16">
+      <main id="main" className="flex flex-1 items-center justify-center px-6 py-16">
         <div className="w-full max-w-sm rounded-2xl border border-border p-8">
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
             {title}
@@ -43,7 +43,7 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
 }
 
 const fieldClass =
-  'h-11 rounded-xl border-border bg-transparent px-3 font-normal placeholder:text-muted-foreground/70 focus-visible:border-foreground'
+  'h-11 rounded-xl border-border bg-transparent px-3 font-normal placeholder:text-muted-foreground focus-visible:border-foreground'
 
 type AuthFieldProps = {
   label: string

@@ -14,6 +14,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ROLE_ADMIN, sessionQuery } from '@/lib/auth'
+import { usePageTitle } from '@/lib/use-page-title'
 
 type AdminUser = {
   id: string
@@ -54,6 +55,7 @@ function AdminUsers() {
 }
 
 function AdminUsersTable() {
+  usePageTitle('Admin · Users')
   const users = useQuery(adminUsersQuery)
 
   return (

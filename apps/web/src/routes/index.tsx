@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { sessionQuery } from '@/lib/auth'
 import { STACK } from '@/lib/brand'
+import { usePageTitle } from '@/lib/use-page-title'
 
 function Landing() {
   // Signed-in visitors get dashboard shortcuts instead of signup CTAs.
   // The skeleton placeholders avoid a flicker while the session resolves.
+  usePageTitle('Ship your SaaS faster with a Go starter')
   const { data: user, isPending } = useQuery(sessionQuery)
 
   return (
@@ -60,26 +62,26 @@ function Landing() {
         </div>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-6 pb-16">
+      <main id="main" className="flex flex-1 items-center justify-center px-6 pb-16">
         <section className="mx-auto flex w-full max-w-6xl flex-col items-center gap-6 text-center">
-          <span className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground duration-700">
+          <span className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 fill-mode-both inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground duration-700">
             <SparklesIcon className="size-3.5" />
             Built with Go, Fiber, sqlc &amp; Postgres
           </span>
 
-          <h1 className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both max-w-3xl font-heading text-4xl font-semibold tracking-tighter text-balance delay-100 duration-700 sm:text-6xl">
-            <span className="bg-linear-to-b from-foreground via-foreground to-foreground/40 bg-clip-text text-transparent">
+          <h1 className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 fill-mode-both max-w-3xl font-heading text-4xl font-semibold tracking-tighter text-balance delay-100 duration-700 sm:text-6xl">
+            <span className="bg-linear-to-b from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
               Ship your SaaS faster with a Go starter
             </span>
           </h1>
 
-          <p className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both max-w-xl text-lg leading-8 text-balance text-muted-foreground delay-200 duration-700">
+          <p className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 fill-mode-both max-w-xl text-lg leading-8 text-balance text-muted-foreground delay-200 duration-700">
             Fiber API, embedded React SPA, and Postgres with typed SQL and
             versioned migrations — one repo, one binary, one origin. Clone it,
             brand it, ship it.
           </p>
 
-          <div className="flex w-full animate-in fade-in items-center justify-center fill-mode-both delay-300 duration-700 sm:w-auto">
+          <div className="flex w-full motion-safe:animate-in motion-safe:fade-in items-center justify-center fill-mode-both delay-300 duration-700 sm:w-auto">
             {isPending ? (
               <Skeleton className="h-12 w-48 rounded-full" />
             ) : user ? (
@@ -103,7 +105,7 @@ function Landing() {
             )}
           </div>
 
-          <div className="flex animate-in fade-in flex-col items-center gap-3 fill-mode-both delay-[450ms] duration-700">
+          <div className="flex motion-safe:animate-in motion-safe:fade-in flex-col items-center gap-3 fill-mode-both delay-[450ms] duration-700">
             <StatusPills />
             <p className="text-xs text-muted-foreground">{STACK.join(' · ')}</p>
           </div>

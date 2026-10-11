@@ -6,8 +6,10 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { AuthField, AuthShell } from '@/components/auth/auth-shell'
 import { Button } from '@/components/ui/button'
 import { authApi, sessionQuery } from '@/lib/auth'
+import { usePageTitle } from '@/lib/use-page-title'
 
 function LoginPage() {
+  usePageTitle('Sign in')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
